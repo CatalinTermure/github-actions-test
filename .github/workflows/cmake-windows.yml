@@ -1,0 +1,47 @@
+name: CMake on Windows
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  strings:
+    runs-on: [windows-latest]
+    outputs:
+      build-output-dir: steps.step1.outputs
+    steps:
+      - id: step1
+        run: echo "build-output-dir=${{ github.workspace }}/build" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
+  build:
+    runs-on: ${{ matrix.os }}
+
+    needs: strings
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        compiler: ['cl']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: >
+        cmake -B ${{ needs.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -S ${{ github.workspace }}
+
+    - name: Build
+      run: cmake --build ${{ needs.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+    - name: Test
+      working-directory: ${{ needs.strings.outputs.build-output-dir }}
+      run: ctest --build-config ${{ matrix.build_type }}
