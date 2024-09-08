@@ -1,4 +1,4 @@
-name: CMake on Ubuntu
+name: CMake on Windows
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
   strings:
     runs-on: [windows-latest]
     outputs:
-      build-output-dir: ${{ steps.step1.outputs }}
+      build-output-dir: steps.step1.outputs
     steps:
       - id: step1
         run: echo "build-output-dir=${{ github.workspace }}/build" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
